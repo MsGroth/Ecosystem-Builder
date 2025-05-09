@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ecosystem Simulation</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; }
+    header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+    .tabs { display: flex; cursor: pointer; background-color: #eee; padding: 10px; }
+    .tab { margin-right: 10px; padding: 10px; background-color: #ddd; border-radius: 5px; }
+    .tab.active { background-color: white; font-weight: bold; }
+    .content { display: none; padding: 20px; }
+    .content.active { display: block; }
+    .organism-palette { display: flex; flex-wrap: wrap; gap: 10px; }
+    .emoji-label {
+      text-align: center;
+      font-size: 1.5em;
+      cursor: grab;
+      user-select: none;
+      border: 1px solid #ccc;
+      padding: 5px;
+      border-radius: 5px;
+      background: #f9f9f9;
+      width: 60px;
+    }
+    .emoji-label .label {
+      font-size: 0.6em;
+      color: #333;
+      display: block;
+    }
+    #ecosystem-canvas {
+      width: 100%;
+      height: 400px;
+      margin-top: 10px;
+      background: linear-gradient(to top, #6B8E23 50%, #87CEEB 50%);
+      border: 2px solid #4CAF50;
+      position: relative;
+    }
+    .pyramid-level {
+      border: 1px dashed gray;
+      min-height: 50px;
+      margin: 10px 0;
+      padding: 10px;
+      text-align: center;
+    }
+    .pyramid-emoji {
+      font-size: 2em;
+      margin: 5px;
+      cursor: pointer;
+    }
+    .sky-object {
+      position: absolute;
+      z-index: 1;
+      font-size: 2em;
+      user-select: none;
+    }
+    #sun { top: 20px; right: 40px; }
+    .cloud { top: 40px; }
+    #cloud1 { left: 100px; }
+    #cloud2 { left: 300px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/konva@9.2.0/konva.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Ecosystem Simulation</h1>
+    <div>
+      <label for="student-name">Name:</label>
+      <input type="text" id="student-name" placeholder="Enter your name" />
+      <label for="class-period">Class Period:</label>
+      <input type="text" id="class-period" placeholder="e.g. 3rd" />
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(0)">Build Ecosystem</div>
+    <div class="tab" onclick="showTab(1)">Energy Pyramid</div>
+    <div class="tab" onclick="showTab(2)">Disruption Scenarios</div>
+  </div>
+
+  <!-- Tab 1 -->
+  <div class="content active">
+    <div class="organism-palette">
+      <div class="emoji-label" draggable="true" data-emoji="🐍">🐍<span class="label">Snake</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🍄">🍄<span class="label">Mushroom</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦅">🦅<span class="label">Eagle</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐺">🐺<span class="label">Wolf</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦊">🦊<span class="label">Fox</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐁">🐁<span class="label">Mouse</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦉">🦉<span class="label">Owl</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦗">🦗<span class="label">Insect</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐇">🐇<span class="label">Rabbit</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🌳">🌳<span class="label">Tree</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🪱">🪱<span class="label">Worm</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🌱">🌱<span class="label">Sprout</span></div>
+    </div>
+    <button onclick="toggleArrowMode()">Toggle Draw Arrows Mode</button>
+    <div id="ecosystem-canvas" ondrop="dropOnCanvas(event)" ondragover="allowDrop(event)">
+      <div class="sky-object" id="sun">☀️</div>
+      <div class="sky-object cloud" id="cloud1">☁️</div>
+      <div class="sky-object cloud" id="cloud2">☁️</div>
+    </div>
+  </div>
+
+  <!-- Tab 2 -->
+  <div class="content">
+    <div class="organism-palette">
+       <div class="emoji-label" draggable="true" data-emoji="🐍">🐍<span class="label">Snake</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🍄">🍄<span class="label">Mushroom</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦅">🦅<span class="label">Eagle</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐺">🐺<span class="label">Wolf</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦊">🦊<span class="label">Fox</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐁">🐁<span class="label">Mouse</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦉">🦉<span class="label">Owl</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🦗">🦗<span class="label">Insect</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🐇">🐇<span class="label">Rabbit</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🌳">🌳<span class="label">Tree</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🪱">🪱<span class="label">Worm</span></div>
+      <div class="emoji-label" draggable="true" data-emoji="🌱">🌱<span class="label">Sprout</span></div>
+    </div>
+    <p style="font-size: 0.9em; color: gray;">💡 Right-click an emoji to remove it.</p>
+    <div class="pyramid-level" ondrop="dropPyramid(event)" ondragover="allowDrop(event)">Tertiary Consumers</div>
+    <div class="pyramid-level" ondrop="dropPyramid(event)" ondragover="allowDrop(event)">Secondary Consumers</div>
+    <div class="pyramid-level" ondrop="dropPyramid(event)" ondragover="allowDrop(event)">Primary Consumers</div>
+    <div class="pyramid-level" ondrop="dropPyramid(event)" ondragover="allowDrop(event)">Producers</div>
+    <div class="pyramid-level" ondrop="dropPyramid(event)" ondragover="allowDrop(event)">Decomposers</div>
+  </div>
+
+  <!-- Tab 3 -->
+  <div class="content">
+    <p><strong>Pollution:</strong> What would happen if the river became so polluted that the plants all died?</p>
+    <textarea rows="4" cols="50"></textarea>
+    <p><strong>Invasive Species:</strong> If we introduced a new predator, what would happen to your ecosystem?</p>
+    <textarea rows="4" cols="50"></textarea>
+    <p><strong>Climate Change:</strong> What would happen to your secondary consumer populations if the owls and wolves died out?</p>
+    <textarea rows="4" cols="50"></textarea>
+    <br><br>
+    <button onclick="downloadFullReport()">Download My Report (PDF)</button>
+  </div>
+
+  <script>
+    let draggedEmoji, arrowMode = false, selectedNode = null, arrows = [];
+
+    function showTab(index) {
+      document.querySelectorAll('.tab').forEach((tab, i) => {
+        tab.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.content').forEach((content, i) => {
+        content.classList.toggle('active', i === index);
+      });
+    }
+
+    function allowDrop(e) { e.preventDefault(); }
+
+    document.querySelectorAll('.emoji-label').forEach(span => {
+      span.addEventListener('dragstart', (e) => {
+        draggedEmoji = span.getAttribute('data-emoji');
+      });
+    });
+
+    function dropOnCanvas(e) {
+      e.preventDefault();
+      const rect = e.target.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const text = new Konva.Text({
+        text: draggedEmoji,
+        x, y,
+        fontSize: 50,
+        draggable: true
+      });
+
+      text.on('click', () => {
+        if (arrowMode) {
+          if (!selectedNode) {
+            selectedNode = text;
+          } else {
+            if (selectedNode !== text) {
+              createArrow(selectedNode, text);
+            }
+            selectedNode = null;
+          }
+        }
+      });
+
+      text.on('dragmove', updateArrows);
+
+      layer.add(text);
+      layer.draw();
+    }
+
+    function dropPyramid(e) {
+      e.preventDefault();
+      const emoji = document.createElement('span');
+      emoji.textContent = draggedEmoji;
+      emoji.classList.add('pyramid-emoji');
+      emoji.title = "Right-click to remove";
+      emoji.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        emoji.remove();
+      });
+      e.target.appendChild(emoji);
+    }
+
+    function toggleArrowMode() {
+      arrowMode = !arrowMode;
+      selectedNode = null;
+      alert(arrowMode ? "Arrow mode enabled: click two organisms." : "Arrow mode disabled.");
+    }
+
+    function createArrow(fromNode, toNode) {
+      const arrow = new Konva.Arrow({
+        points: [fromNode.x(), fromNode.y(), toNode.x(), toNode.y()],
+        pointerLength: 10,
+        pointerWidth: 10,
+        fill: 'black',
+        stroke: 'black',
+        strokeWidth: 2
+      });
+      arrow.fromNode = fromNode;
+      arrow.toNode = toNode;
+      arrows.push(arrow);
+      layer.add(arrow);
+      layer.draw();
+    }
+
+    function updateArrows() {
+      arrows.forEach(arrow => {
+        const start = arrow.fromNode.position();
+        const end = arrow.toNode.position();
+        arrow.points([start.x, start.y, end.x, end.y]);
+      });
+      layer.batchDraw();
+    }
+
+    // PDF export
+    function downloadFullReport() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
+
+      alert("✅ Your PDF is downloading.\n\nTo submit it to Google Classroom:\n1. Open your assignment.\n2. Click 'Add or Create' > 'File'.\n3. Upload your PDF.\n4. Click 'Turn In'. Great job!");
+
+      const studentName = document.getElementById('student-name').value || "(Name)";
+      const classPeriod = document.getElementById('class-period').value || "(Class Period)";
+
+      const tabs = document.querySelectorAll('.content');
+      const originalTabIndex = Array.from(tabs).findIndex(tab => tab.classList.contains('active'));
+
+      const captureTab = (index) => {
+        return new Promise(resolve => {
+          tabs.forEach(tab => tab.classList.remove('active'));
+          tabs[index].classList.add('active');
+
+          setTimeout(() => {
+            html2canvas(tabs[index]).then(canvas => {
+              const imgData = canvas.toDataURL('image/png');
+              const imgProps = pdf.getImageProperties(imgData);
+              const pdfWidth = pdf.internal.pageSize.getWidth();
+              const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+              if (index > 0) pdf.addPage();
+              pdf.setFontSize(14);
+              if (index === 0) {
+                pdf.text(`Student Name: ${studentName}`, 10, 10);
+                pdf.text(`Class Period: ${classPeriod}`, 10, 18);
+              }
+
+              pdf.addImage(imgData, 'PNG', 10, index === 0 ? 25 : 10, pdfWidth - 20, pdfHeight - (index === 0 ? 25 : 10));
+              resolve();
+            });
+          }, 300);
+        });
+      };
+
+      Promise.resolve()
+        .then(() => captureTab(0))
+        .then(() => captureTab(1))
+        .then(() => captureTab(2))
+        .then(() => {
+          tabs.forEach((tab, i) => tab.classList.toggle('active', i === originalTabIndex));
+          pdf.save('ecosystem_simulation_report.pdf');
+        });
+    }
+
+    // Konva canvas setup
+    const stage = new Konva.Stage({
+      container: 'ecosystem-canvas',
+      width: window.innerWidth - 40,
+      height: 400
+    });
+    const layer = new Konva.Layer();
+    stage.add(layer);
+  </script>
+</body>
+</html>
